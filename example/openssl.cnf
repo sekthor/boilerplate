@@ -1,0 +1,6 @@
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = joe.mama
+IP.1 = 0.0.0.0
