@@ -1,0 +1,23 @@
+// EXAMPLE from
+// https://grpc-ecosystem.github.io/grpc-gateway/docs/tutorials/adding_annotations/
+syntax = "proto3";
+package greeter.v1;
+
+import "google/api/annotations.proto";
+
+service GreeterService {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
+    option (google.api.http) = {
+      post: "/v1/example/echo"
+      body: "*"
+    };
+  }
+}
+
+message SayHelloRequest {
+  string name = 1;
+}
+
+message SayHelloResponse {
+  string message = 1;
+}
