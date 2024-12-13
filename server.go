@@ -8,6 +8,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -71,7 +72,13 @@ func (s *boilerplate) Run(ctx context.Context) error {
 func (s *boilerplate) runGrpc() error {
 	var opts []grpc.ServerOption
 
-	// TODO: set options from config
+	if !s.config.Grpc.Insecure {
+		creds, err := credentials.NewServerTLSFromFile(s.config.Grpc.TlsServerCert, s.config.Grpc.TlsServerKey)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
 
 	server := grpc.NewServer(opts...)
 	err := s.grpcRegisterFunc(server)
@@ -91,8 +98,18 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 
 	var dialOptions []grpc.DialOption
 
+	if s.config.Grpc.Insecure {
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	} else {
+		creds, err := credentials.NewClientTLSFromFile(s.config.Grpc.TlsServerCaCert, "joe.mama")
+		if err != nil {
+			return err
+		}
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(creds))
+	}
+
 	// TODO: set options from config
-	dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//dialOptions = append(dialOptions, grpc.WithTransportCredentials(creds))
 
 	conn, err := grpc.NewClient(
 		s.config.Grpc.Addr(),
