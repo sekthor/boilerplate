@@ -2,9 +2,12 @@ package boilerplate
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -72,11 +75,31 @@ func (s *boilerplate) Run(ctx context.Context) error {
 func (s *boilerplate) runGrpc() error {
 	var opts []grpc.ServerOption
 
-	if !s.config.Grpc.Insecure {
-		creds, err := credentials.NewServerTLSFromFile(s.config.Grpc.TlsServerCert, s.config.Grpc.TlsServerKey)
+	if s.config.Grpc.TLS.Enabled {
+		cert, err := tls.LoadX509KeyPair(s.config.Grpc.TLS.Cert, s.config.Grpc.TLS.Key)
 		if err != nil {
 			return err
 		}
+
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+
+		if s.config.Grpc.TLS.Mutual {
+			ca := x509.NewCertPool()
+			caBytes, err := os.ReadFile(s.config.Grpc.TLS.Ca)
+			if err != nil {
+				return err
+			}
+			if ok := ca.AppendCertsFromPEM(caBytes); !ok {
+				return errors.New("could not load ca cert")
+			}
+
+			tlsConfig.ClientCAs = ca
+			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+		}
+
+		creds := credentials.NewTLS(tlsConfig)
 		opts = append(opts, grpc.Creds(creds))
 	}
 
@@ -98,18 +121,33 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 
 	var dialOptions []grpc.DialOption
 
-	if s.config.Grpc.Insecure {
+	if !s.config.Grpc.TLS.Enabled {
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
-		creds, err := credentials.NewClientTLSFromFile(s.config.Grpc.TlsServerCaCert, "joe.mama")
+		ca := x509.NewCertPool()
+		caBytes, err := os.ReadFile(s.config.Gateway.TLS.Ca)
 		if err != nil {
 			return err
 		}
+		if ok := ca.AppendCertsFromPEM(caBytes); !ok {
+			return errors.New("could not load ca cert")
+		}
+
+		tlsConfig := &tls.Config{
+			RootCAs:    ca,
+			ServerName: "joe.mama",
+		}
+		if s.config.Grpc.TLS.Mutual {
+			cert, err := tls.LoadX509KeyPair(s.config.Gateway.TLS.Cert, s.config.Gateway.TLS.Key)
+			if err != nil {
+				return err
+			}
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+
+		creds := credentials.NewTLS(tlsConfig)
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(creds))
 	}
-
-	// TODO: set options from config
-	//dialOptions = append(dialOptions, grpc.WithTransportCredentials(creds))
 
 	conn, err := grpc.NewClient(
 		s.config.Grpc.Addr(),

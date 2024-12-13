@@ -11,18 +11,29 @@ const (
 
 var defaultConfig = BoilerplateConfig{
 	Grpc: ServerConfig{
-		Port:            DEFAULT_GRPC_PORT,
-		Host:            DEFAULT_HOST,
-		Enabled:         true,
-		Insecure:        false,
-		TlsServerCert:   "server_cert.pem",
-		TlsServerKey:    "server_key.pem",
-		TlsServerCaCert: "ca_cert.pem",
+		Port:    DEFAULT_GRPC_PORT,
+		Host:    DEFAULT_HOST,
+		Enabled: true,
+
+		TLS: TlsConfig{
+			Enabled: false,
+			Mutual:  true,
+			Cert:    "certs/server_cert.pem",
+			Key:     "certs/server_key.pem",
+			Ca:      "certs/client_ca_cert.pem",
+		},
 	},
 	Gateway: ServerConfig{
 		Port:    DEFAULT_GATEWAY_PORT,
 		Host:    DEFAULT_HOST,
 		Enabled: true,
+
+		TLS: TlsConfig{
+			Mutual: true,
+			Cert:   "certs/client_cert.pem",
+			Key:    "certs/client_key.pem",
+			Ca:     "certs/server_ca_cert.pem",
+		},
 	},
 	Otel: OtelConfig{
 		OtelExporter: OtelExporter{
@@ -39,13 +50,10 @@ type BoilerplateConfig struct {
 }
 
 type ServerConfig struct {
-	Enabled         bool
-	Host            string
-	Port            uint
-	Insecure        bool
-	TlsServerCert   string
-	TlsServerKey    string
-	TlsServerCaCert string
+	Enabled bool
+	Host    string
+	Port    uint
+	TLS     TlsConfig
 }
 
 type OtelConfig struct {
@@ -59,6 +67,14 @@ type OtelExporter struct {
 	Host     string
 	Port     uint
 	Interval uint
+}
+
+type TlsConfig struct {
+	Enabled bool
+	Mutual  bool
+	Key     string
+	Cert    string
+	Ca      string
 }
 
 func (s ServerConfig) Addr() string {
