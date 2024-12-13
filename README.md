@@ -29,12 +29,12 @@ go get -u github.com/sekthor/boilerplate
     ```
 1. create a `boilerplate.GrpcRegisterFunc` and a `boilerplate.GatewayRegisterFunc` that wrap the generated register functions. These wrappers are called inbetween the creation of the servers and the start.
     ```go
-    var grpcFunc := func(s *grpc.Server) error {
+    var grpcFunc = func(s *grpc.Server) error {
         greeterv1.RegisterGreeterServiceServer(s, i)
         return nil
     }
 
-    var gatewayFunc := func(ctx context.Context, mux *runtime.ServeMux, cc *grpc.ClientConn) error {
+    var gatewayFunc = func(ctx context.Context, mux *runtime.ServeMux, cc *grpc.ClientConn) error {
         return greeterv1.RegisterGreeterServiceHandler(ctx, mux, cc)
     }
     ```
