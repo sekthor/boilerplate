@@ -27,19 +27,15 @@ go get -u github.com/sekthor/boilerplate
         }, nil
     }
     ```
-1. create a `boilerplate.GrpcRegisterFunc` and a `boilerplate.GatewayRegisterFunc` that wrap the generated register functions. These wrappers are called inbetween the creation of the servers and the start. They can also just be standalone functions (rather than being returned from a method on the ServiceImplementation).
+1. create a `boilerplate.GrpcRegisterFunc` and a `boilerplate.GatewayRegisterFunc` that wrap the generated register functions. These wrappers are called inbetween the creation of the servers and the start.
     ```go
-    func (i *ServiceImplementation) GrpcFunc() boilerplate.GrpcRegisterFunc {
-        return func(s *grpc.Server) error {
-            greeterv1.RegisterGreeterServiceServer(s, i)
-            return nil
-        }
+    var grpcFunc := func(s *grpc.Server) error {
+        greeterv1.RegisterGreeterServiceServer(s, i)
+        return nil
     }
 
-    func (i *ServiceImplementation) GatewayFunc() boilerplate.GatewayRegisterFunc {
-        return func(ctx context.Context, mux *runtime.ServeMux, cc *grpc.ClientConn) error {
-            return greeterv1.RegisterGreeterServiceHandler(ctx, mux, cc)
-        }
+    var gatewayFunc := func(ctx context.Context, mux *runtime.ServeMux, cc *grpc.ClientConn) error {
+        return greeterv1.RegisterGreeterServiceHandler(ctx, mux, cc)
     }
     ```
 1. add the `boilerplate.BoilerplateServer` interface in your service implementation and create the instance
@@ -57,8 +53,8 @@ go get -u github.com/sekthor/boilerplate
     ```
 1. Register the service
     ```go
-    server.RegisterGrpc(service.GrpcFunc())
-    server.RegisterGateway(service.GatewayFunc())
+    server.RegisterGrpc(grpcFunc)
+    server.RegisterGateway(gatewayFunc)
     ```
 1. Run the server
     ```go
