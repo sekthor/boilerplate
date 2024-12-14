@@ -10,6 +10,8 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +21,7 @@ var _ BoilerplateServer = &boilerplate{}
 
 type boilerplate struct {
 	config              BoilerplateConfig
+	tracer              trace.Tracer
 	grpcRegisterFunc    GrpcRegisterFunc
 	gatewayRegisterFunc GatewayRegisterFunc
 }
@@ -33,20 +36,18 @@ func Default() BoilerplateServer {
 	}
 }
 
-func (s *boilerplate) WithConfig(conf BoilerplateConfig) {
-	s.config = conf
-}
-
-func (s *boilerplate) WithGrpcPort(port uint) {
-	s.config.Grpc.Port = port
-}
-
-func (s *boilerplate) WithGrpcHost(host string) {
-	// TODO: validate host format
-	s.config.Grpc.Host = host
-}
-
 func (s *boilerplate) Run(ctx context.Context) error {
+
+	if s.config.Otel.Enabled {
+		shutdown, err := setupOtel(ctx, s.config.Otel, s.config.ServiceName)
+		if err != nil {
+			return err
+		}
+		defer shutdown(ctx)
+
+		s.tracer = otel.GetTracerProvider().Tracer(s.config.TracerName)
+	}
+
 	errChan := make(chan error)
 
 	// if grpc is off, we can have no gateway either
@@ -170,4 +171,8 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		Handler: mux,
 	}
 	return server.ListenAndServe()
+}
+
+func (s *boilerplate) Tracer() trace.Tracer {
+	return s.tracer
 }

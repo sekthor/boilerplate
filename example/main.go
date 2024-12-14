@@ -18,6 +18,9 @@ type ServiceImplementation struct {
 
 // implement protobuf service
 func (i *ServiceImplementation) SayHello(ctx context.Context, req *greeterv1.SayHelloRequest) (*greeterv1.SayHelloResponse, error) {
+	_, span := i.server.Tracer().Start(ctx, "SayHello")
+	defer span.End()
+
 	name := req.GetName()
 
 	return &greeterv1.SayHelloResponse{

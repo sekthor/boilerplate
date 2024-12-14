@@ -10,6 +10,8 @@ const (
 )
 
 var defaultConfig = BoilerplateConfig{
+	ServiceName: "UnnamedBoilerplateService",
+	TracerName:  "github.com/sekthor/boilerplate",
 	Grpc: ServerConfig{
 		Port:    DEFAULT_GRPC_PORT,
 		Host:    DEFAULT_HOST,
@@ -41,13 +43,23 @@ var defaultConfig = BoilerplateConfig{
 			Port:    DEFAULT_OTEL_PORT,
 			Host:    "127.0.0.1",
 		},
+		Tracing: OtelExporterConfig{
+			Enabled:  true,
+			Protocol: "grpc",
+			Port:     DEFAULT_OTEL_PORT,
+			Host:     "127.0.0.1",
+			Interval: 5,
+			Insecure: true,
+		},
 	},
 }
 
 type BoilerplateConfig struct {
-	Grpc    ServerConfig
-	Gateway ServerConfig
-	Otel    OtelConfig
+	ServiceName string
+	TracerName  string
+	Grpc        ServerConfig
+	Gateway     ServerConfig
+	Otel        OtelConfig
 }
 
 type ServerConfig struct {
