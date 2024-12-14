@@ -36,9 +36,10 @@ var defaultConfig = BoilerplateConfig{
 		},
 	},
 	Otel: OtelConfig{
-		OtelExporter: OtelExporter{
-			Port: DEFAULT_OTEL_PORT,
-			Host: "127.0.0.1",
+		OtelExporterConfig: OtelExporterConfig{
+			Enabled: true,
+			Port:    DEFAULT_OTEL_PORT,
+			Host:    "127.0.0.1",
 		},
 	},
 }
@@ -57,16 +58,18 @@ type ServerConfig struct {
 }
 
 type OtelConfig struct {
-	OtelExporter
-	Tracing OtelExporter
-	Metrics OtelExporter
+	OtelExporterConfig
+	Tracing OtelExporterConfig
+	Metrics OtelExporterConfig
 }
 
-type OtelExporter struct {
+type OtelExporterConfig struct {
 	Enabled  bool
 	Host     string
 	Port     uint
 	Interval uint
+	Protocol string
+	Insecure bool
 }
 
 type TlsConfig struct {
@@ -81,6 +84,6 @@ func (s ServerConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", s.Host, s.Port)
 }
 
-func (e OtelExporter) Addr() string {
+func (e OtelExporterConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", e.Host, e.Port)
 }
