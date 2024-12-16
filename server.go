@@ -44,14 +44,15 @@ func (s *boilerplate) Run(ctx context.Context) error {
 			return err
 		}
 		defer shutdown(ctx)
-
-		s.tracer = otel.GetTracerProvider().Tracer(s.config.TracerName)
 	}
+
+	tp := otel.GetTracerProvider()
+	s.tracer = tp.Tracer(s.config.TracerName)
 
 	errChan := make(chan error)
 
 	// if grpc is off, we can have no gateway either
-	if !s.config.Grpc.Enabled {
+	if s.config.Grpc.Disabled {
 		return nil
 	}
 
@@ -59,7 +60,7 @@ func (s *boilerplate) Run(ctx context.Context) error {
 		errChan <- s.runGrpc()
 	}()
 
-	if s.config.Gateway.Enabled {
+	if !s.config.Gateway.Disabled {
 		go func() {
 			errChan <- s.runGateway(ctx)
 		}()

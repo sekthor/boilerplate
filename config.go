@@ -13,9 +13,8 @@ var defaultConfig = BoilerplateConfig{
 	ServiceName: "UnnamedBoilerplateService",
 	TracerName:  "github.com/sekthor/boilerplate",
 	Grpc: ServerConfig{
-		Port:    DEFAULT_GRPC_PORT,
-		Host:    DEFAULT_HOST,
-		Enabled: true,
+		Port: DEFAULT_GRPC_PORT,
+		Host: DEFAULT_HOST,
 
 		TLS: TlsConfig{
 			Enabled: false,
@@ -26,9 +25,8 @@ var defaultConfig = BoilerplateConfig{
 		},
 	},
 	Gateway: ServerConfig{
-		Port:    DEFAULT_GATEWAY_PORT,
-		Host:    DEFAULT_HOST,
-		Enabled: true,
+		Port: DEFAULT_GATEWAY_PORT,
+		Host: DEFAULT_HOST,
 
 		TLS: TlsConfig{
 			Mutual: true,
@@ -63,10 +61,10 @@ type BoilerplateConfig struct {
 }
 
 type ServerConfig struct {
-	Enabled bool
-	Host    string
-	Port    uint
-	TLS     TlsConfig
+	Disabled bool
+	Host     string
+	Port     uint
+	TLS      TlsConfig
 }
 
 type OtelConfig struct {
