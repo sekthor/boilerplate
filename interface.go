@@ -1,12 +1,23 @@
 package boilerplate
 
-import "context"
+import (
+	"context"
+
+	"go.opentelemetry.io/otel/trace"
+)
 
 type BoilerplateServer interface {
-	WithConfig(BoilerplateConfig)
-	WithGrpcHost(string)
-	WithGrpcPort(uint)
+	WithServiceName(string) *boilerplate
+	WithConfig(BoilerplateConfig) *boilerplate
+	WithGrpcHost(string) *boilerplate
+	WithGrpcPort(uint) *boilerplate
+	WithGatewayHost(string) *boilerplate
+	WithGatewayPort(uint) *boilerplate
+	WithGrpcRegisterFunc(GrpcRegisterFunc) *boilerplate
+	WithGatewayRegisterFunc(GatewayRegisterFunc) *boilerplate
+	WithTracer(string) *boilerplate
 	RegisterGateway(GatewayRegisterFunc)
 	RegisterGrpc(GrpcRegisterFunc)
 	Run(context.Context) error
+	Tracer() trace.Tracer
 }

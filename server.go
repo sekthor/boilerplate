@@ -10,6 +10,8 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +21,7 @@ var _ BoilerplateServer = &boilerplate{}
 
 type boilerplate struct {
 	config              BoilerplateConfig
+	tracer              trace.Tracer
 	grpcRegisterFunc    GrpcRegisterFunc
 	gatewayRegisterFunc GatewayRegisterFunc
 }
@@ -33,24 +36,23 @@ func Default() BoilerplateServer {
 	}
 }
 
-func (s *boilerplate) WithConfig(conf BoilerplateConfig) {
-	s.config = conf
-}
-
-func (s *boilerplate) WithGrpcPort(port uint) {
-	s.config.Grpc.Port = port
-}
-
-func (s *boilerplate) WithGrpcHost(host string) {
-	// TODO: validate host format
-	s.config.Grpc.Host = host
-}
-
 func (s *boilerplate) Run(ctx context.Context) error {
+
+	if s.config.Otel.Enabled {
+		shutdown, err := setupOtel(ctx, s.config.Otel, s.config.ServiceName)
+		if err != nil {
+			return err
+		}
+		defer shutdown(ctx)
+	}
+
+	tp := otel.GetTracerProvider()
+	s.tracer = tp.Tracer(s.config.TracerName)
+
 	errChan := make(chan error)
 
 	// if grpc is off, we can have no gateway either
-	if !s.config.Grpc.Enabled {
+	if s.config.Grpc.Disabled {
 		return nil
 	}
 
@@ -58,7 +60,7 @@ func (s *boilerplate) Run(ctx context.Context) error {
 		errChan <- s.runGrpc()
 	}()
 
-	if s.config.Gateway.Enabled {
+	if !s.config.Gateway.Disabled {
 		go func() {
 			errChan <- s.runGateway(ctx)
 		}()
@@ -101,6 +103,14 @@ func (s *boilerplate) runGrpc() error {
 
 		creds := credentials.NewTLS(tlsConfig)
 		opts = append(opts, grpc.Creds(creds))
+	}
+
+	if len(s.config.JwkUrls) > 0 {
+		interceptor, err := UnaryJwtInterceptor(s.config.JwkUrls)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, grpc.UnaryInterceptor(interceptor))
 	}
 
 	server := grpc.NewServer(opts...)
@@ -170,4 +180,8 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		Handler: mux,
 	}
 	return server.ListenAndServe()
+}
+
+func (s *boilerplate) Tracer() trace.Tracer {
+	return s.tracer
 }
