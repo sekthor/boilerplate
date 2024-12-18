@@ -1,12 +1,16 @@
 package boilerplate
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 const (
-	DEFAULT_GRPC_PORT    = 50001
-	DEFAULT_GATEWAY_PORT = 50002
-	DEFAULT_HOST         = "0.0.0.0"
-	DEFAULT_OTEL_PORT    = 4317
+	DEFAULT_GRPC_PORT     = 50001
+	DEFAULT_GATEWAY_PORT  = 50002
+	DEFAULT_HOST          = "0.0.0.0"
+	DEFAULT_OTEL_PORT     = 4317
+	DEFAULT_OTEL_INTERVAL = 5
 )
 
 var defaultConfig = BoilerplateConfig{
@@ -97,3 +101,66 @@ func (s ServerConfig) Addr() string {
 func (e OtelExporterConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", e.Host, e.Port)
 }
+
+func (c OtelConfig) TracingPort() uint {
+	if c.Tracing.Port != 0 {
+		return c.Tracing.Port
+	}
+
+	if c.Port != 0 {
+		return c.Port
+	}
+
+	return DEFAULT_OTEL_PORT
+}
+
+func (c OtelConfig) MetricsPort() uint {
+	if c.Metrics.Port != 0 {
+		return c.Metrics.Port
+	}
+
+	if c.Port != 0 {
+		return c.Port
+	}
+
+	return DEFAULT_OTEL_PORT
+}
+
+func (c OtelConfig) TracingHost() string {
+	if c.Tracing.Host != "" {
+		return c.Tracing.Host
+	}
+
+	return c.Host
+}
+
+func (c OtelConfig) MetricsHost() string {
+	if c.Metrics.Host != "" {
+		return c.Metrics.Host
+	}
+
+	return c.Host
+}
+
+func (c OtelConfig) TracingInterval() time.Duration {
+	if c.Tracing.Interval != 0 {
+		return time.Second * time.Duration(c.Tracing.Interval)
+	}
+
+	if c.Interval != 0 {
+		return time.Second * time.Duration(c.Interval)
+	}
+	return DEFAULT_OTEL_INTERVAL * time.Second
+}
+
+func (c OtelConfig) MetricsInterval() time.Duration {
+	if c.Metrics.Interval != 0 {
+		return time.Second * time.Duration(c.Metrics.Interval)
+	}
+
+	if c.Interval != 0 {
+		return time.Second * time.Duration(c.Interval)
+	}
+	return DEFAULT_OTEL_INTERVAL * time.Second
+}
+
