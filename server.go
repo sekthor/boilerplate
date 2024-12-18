@@ -119,7 +119,7 @@ func (s *boilerplate) runGrpc() error {
 		return err
 	}
 
-	lis, err := net.Listen("tcp", s.config.Grpc.Addr())
+	lis, err := net.Listen("tcp", s.config.Grpc.Addr)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 	}
 
 	conn, err := grpc.NewClient(
-		s.config.Grpc.Addr(),
+		s.config.Grpc.Addr,
 		dialOptions...,
 	)
 
@@ -176,7 +176,7 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 	}
 
 	server := &http.Server{
-		Addr:    s.config.Gateway.Addr(),
+		Addr:    s.config.Gateway.Addr,
 		Handler: mux,
 	}
 	return server.ListenAndServe()

@@ -1,15 +1,13 @@
 package boilerplate
 
 import (
-	"fmt"
 	"time"
 )
 
 const (
-	DEFAULT_GRPC_PORT     = 50001
-	DEFAULT_GATEWAY_PORT  = 50002
-	DEFAULT_HOST          = "0.0.0.0"
-	DEFAULT_OTEL_PORT     = 4317
+	DEFAULT_GRPC_ADDR     = ":50001"
+	DEFAULT_GATEWAY_ADDR  = ":50002"
+	DEFAULT_OTEL_ADDR     = "127.0.0.1:4317"
 	DEFAULT_OTEL_INTERVAL = 5
 )
 
@@ -17,9 +15,7 @@ var defaultConfig = BoilerplateConfig{
 	ServiceName: "UnnamedBoilerplateService",
 	TracerName:  "github.com/sekthor/boilerplate",
 	Grpc: ServerConfig{
-		Port: DEFAULT_GRPC_PORT,
-		Host: DEFAULT_HOST,
-
+		Addr: DEFAULT_GRPC_ADDR,
 		TLS: TlsConfig{
 			Enabled: false,
 			Mutual:  true,
@@ -29,9 +25,7 @@ var defaultConfig = BoilerplateConfig{
 		},
 	},
 	Gateway: ServerConfig{
-		Port: DEFAULT_GATEWAY_PORT,
-		Host: DEFAULT_HOST,
-
+		Addr: DEFAULT_GATEWAY_ADDR,
 		TLS: TlsConfig{
 			Mutual: true,
 			Cert:   "certs/client_cert.pem",
@@ -42,14 +36,12 @@ var defaultConfig = BoilerplateConfig{
 	Otel: OtelConfig{
 		OtelExporterConfig: OtelExporterConfig{
 			Enabled: true,
-			Port:    DEFAULT_OTEL_PORT,
-			Host:    "127.0.0.1",
+			Addr:    DEFAULT_OTEL_ADDR,
 		},
 		Tracing: OtelExporterConfig{
 			Enabled:  true,
+			Addr:     DEFAULT_OTEL_ADDR,
 			Protocol: "grpc",
-			Port:     DEFAULT_OTEL_PORT,
-			Host:     "127.0.0.1",
 			Interval: 5,
 			Insecure: true,
 		},
@@ -67,8 +59,7 @@ type BoilerplateConfig struct {
 
 type ServerConfig struct {
 	Disabled bool
-	Host     string
-	Port     uint
+	Addr     string
 	TLS      TlsConfig
 }
 
@@ -80,8 +71,7 @@ type OtelConfig struct {
 
 type OtelExporterConfig struct {
 	Enabled  bool
-	Host     string
-	Port     uint
+	Addr     string
 	Interval uint
 	Protocol string
 	Insecure bool
@@ -95,52 +85,38 @@ type TlsConfig struct {
 	Ca      string
 }
 
-func (s ServerConfig) Addr() string {
-	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+func (c OtelConfig) TracingAddr() string {
+	if c.Tracing.Addr != "" {
+		return c.Tracing.Addr
+	}
+	if c.Addr != "" {
+		return c.Addr
+	}
+	return DEFAULT_OTEL_ADDR
 }
 
-func (e OtelExporterConfig) Addr() string {
-	return fmt.Sprintf("%s:%d", e.Host, e.Port)
+func (c OtelConfig) MetricsAddr() string {
+	if c.Metrics.Addr != "" {
+		return c.Metrics.Addr
+	}
+	if c.Addr != "" {
+		return c.Addr
+	}
+	return DEFAULT_OTEL_ADDR
 }
 
-func (c OtelConfig) TracingPort() uint {
-	if c.Tracing.Port != 0 {
-		return c.Tracing.Port
+func (c OtelConfig) TracingProtocol() string {
+	if c.Tracing.Protocol != "" {
+		return c.Tracing.Protocol
 	}
-
-	if c.Port != 0 {
-		return c.Port
-	}
-
-	return DEFAULT_OTEL_PORT
+	return c.Protocol
 }
 
-func (c OtelConfig) MetricsPort() uint {
-	if c.Metrics.Port != 0 {
-		return c.Metrics.Port
+func (c OtelConfig) MetricsProtocol() string {
+	if c.Metrics.Protocol != "" {
+		return c.Metrics.Protocol
 	}
-
-	if c.Port != 0 {
-		return c.Port
-	}
-
-	return DEFAULT_OTEL_PORT
-}
-
-func (c OtelConfig) TracingHost() string {
-	if c.Tracing.Host != "" {
-		return c.Tracing.Host
-	}
-
-	return c.Host
-}
-
-func (c OtelConfig) MetricsHost() string {
-	if c.Metrics.Host != "" {
-		return c.Metrics.Host
-	}
-
-	return c.Host
+	return c.Protocol
 }
 
 func (c OtelConfig) TracingInterval() time.Duration {

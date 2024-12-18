@@ -10,25 +10,14 @@ func (s *boilerplate) WithServiceName(name string) *boilerplate {
 	return s
 }
 
-func (s *boilerplate) WithGrpcPort(port uint) *boilerplate {
-	s.config.Grpc.Port = port
-	return s
-}
-
-func (s *boilerplate) WithGrpcHost(host string) *boilerplate {
+func (s *boilerplate) WithGrpcAddr(addr string) *boilerplate {
 	// TODO: validate host format
-	s.config.Grpc.Host = host
+	s.config.Grpc.Addr = addr
 	return s
 }
 
-func (s *boilerplate) WithGatewayPort(port uint) *boilerplate {
-	s.config.Gateway.Port = port
-	return s
-}
-
-func (s *boilerplate) WithGatewayHost(host string) *boilerplate {
-	// TODO: validate host format
-	s.config.Gateway.Host = host
+func (s *boilerplate) WithGatewayAddr(addr string) *boilerplate {
+	s.config.Gateway.Addr = addr
 	return s
 }
 

@@ -44,7 +44,7 @@ func setupOtel(ctx context.Context, conf OtelConfig, serviceName string) (shutdo
 
 	if conf.Metrics.Enabled {
 		var meterProvider *sdkmetric.MeterProvider
-		meterProvider, err = newMeterProvider(ctx, conf.Metrics, serviceName)
+		meterProvider, err = newMeterProvider(ctx, conf, serviceName)
 		if err != nil {
 			handleErr(err)
 			return
@@ -55,7 +55,7 @@ func setupOtel(ctx context.Context, conf OtelConfig, serviceName string) (shutdo
 
 	if conf.Tracing.Enabled {
 		var tracerProvider *sdktrace.TracerProvider
-		tracerProvider, err = newTraceProvider(ctx, conf.Tracing, serviceName)
+		tracerProvider, err = newTraceProvider(ctx, conf, serviceName)
 		if err != nil {
 			handleErr(err)
 			return
@@ -78,7 +78,7 @@ func defaultResource(serviceName string) (*resource.Resource, error) {
 	)
 }
 
-func newTraceProvider(ctx context.Context, conf OtelExporterConfig, serviceName string) (*sdktrace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context, conf OtelConfig, serviceName string) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := newTraceExporter(ctx, conf)
 	if err != nil {
 		return nil, err
@@ -98,16 +98,16 @@ func newTraceProvider(ctx context.Context, conf OtelExporterConfig, serviceName 
 	return traceProvider, nil
 }
 
-func newTraceExporter(ctx context.Context, conf OtelExporterConfig) (sdktrace.SpanExporter, error) {
+func newTraceExporter(ctx context.Context, conf OtelConfig) (sdktrace.SpanExporter, error) {
 	var exporter sdktrace.SpanExporter
 	var err error
 
-	switch conf.Protocol {
+	switch conf.TracingProtocol() {
 
 	case "http", "https":
 		var options []otlptracehttp.Option
 
-		options = append(options, otlptracehttp.WithEndpoint(conf.Addr()))
+		options = append(options, otlptracehttp.WithEndpoint(conf.TracingAddr()))
 
 		if conf.Insecure {
 			options = append(options, otlptracehttp.WithInsecure())
@@ -117,7 +117,7 @@ func newTraceExporter(ctx context.Context, conf OtelExporterConfig) (sdktrace.Sp
 
 	case "grpc":
 		var options []otlptracegrpc.Option
-		options = append(options, otlptracegrpc.WithEndpoint(conf.Addr()))
+		options = append(options, otlptracegrpc.WithEndpoint(conf.TracingAddr()))
 		if conf.Insecure {
 			options = append(options, otlptracegrpc.WithInsecure())
 		}
@@ -130,7 +130,7 @@ func newTraceExporter(ctx context.Context, conf OtelExporterConfig) (sdktrace.Sp
 	return exporter, err
 }
 
-func newMeterProvider(ctx context.Context, conf OtelExporterConfig, serviceName string) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, conf OtelConfig, serviceName string) (*sdkmetric.MeterProvider, error) {
 	exporter, err := newMetricExporter(ctx, conf)
 	if err != nil {
 		return nil, err
@@ -150,16 +150,16 @@ func newMeterProvider(ctx context.Context, conf OtelExporterConfig, serviceName 
 	return meterProvider, nil
 }
 
-func newMetricExporter(ctx context.Context, conf OtelExporterConfig) (sdkmetric.Exporter, error) {
+func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter, error) {
 	var exporter sdkmetric.Exporter
 	var err error
 
-	switch conf.Protocol {
+	switch conf.MetricsProtocol() {
 
 	case "http", "https":
 		var options []otlpmetrichttp.Option
 
-		options = append(options, otlpmetrichttp.WithEndpoint(conf.Addr()))
+		options = append(options, otlpmetrichttp.WithEndpoint(conf.MetricsAddr()))
 
 		if conf.Insecure {
 			options = append(options, otlpmetrichttp.WithInsecure())
@@ -169,7 +169,7 @@ func newMetricExporter(ctx context.Context, conf OtelExporterConfig) (sdkmetric.
 
 	case "grpc":
 		var options []otlpmetricgrpc.Option
-		options = append(options, otlpmetricgrpc.WithEndpoint(conf.Addr()))
+		options = append(options, otlpmetricgrpc.WithEndpoint(conf.MetricsAddr()))
 		if conf.Insecure {
 			options = append(options, otlpmetricgrpc.WithInsecure())
 		}

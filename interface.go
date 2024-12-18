@@ -9,10 +9,8 @@ import (
 type BoilerplateServer interface {
 	WithServiceName(string) *boilerplate
 	WithConfig(BoilerplateConfig) *boilerplate
-	WithGrpcHost(string) *boilerplate
-	WithGrpcPort(uint) *boilerplate
-	WithGatewayHost(string) *boilerplate
-	WithGatewayPort(uint) *boilerplate
+	WithGrpcAddr(string) *boilerplate
+	WithGatewayAddr(string) *boilerplate
 	WithGrpcRegisterFunc(GrpcRegisterFunc) *boilerplate
 	WithGatewayRegisterFunc(GatewayRegisterFunc) *boilerplate
 	WithTracer(string) *boilerplate

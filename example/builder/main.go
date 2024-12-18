@@ -46,8 +46,8 @@ func main() {
 	}
 
 	i.server = boilerplate.New().
-		WithGrpcPort(50001).
-		WithGatewayPort(50002).
+		WithGrpcAddr(":50001").
+		WithGatewayAddr(":50002").
 		WithTracer("github.com/sekthor/boilerplate/example/builder").
 		WithGrpcRegisterFunc(grpcFunc).
 		WithGatewayRegisterFunc(gatewayFunc).
