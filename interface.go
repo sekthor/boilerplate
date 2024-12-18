@@ -16,6 +16,7 @@ type BoilerplateServer interface {
 	WithGrpcRegisterFunc(GrpcRegisterFunc) *boilerplate
 	WithGatewayRegisterFunc(GatewayRegisterFunc) *boilerplate
 	WithTracer(string) *boilerplate
+	WithJwks(jwksUrls []string) *boilerplate
 	RegisterGateway(GatewayRegisterFunc)
 	RegisterGrpc(GrpcRegisterFunc)
 	Run(context.Context) error
