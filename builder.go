@@ -49,3 +49,8 @@ func (s *boilerplate) WithGatewayRegisterFunc(f GatewayRegisterFunc) *boilerplat
 	s.gatewayRegisterFunc = f
 	return s
 }
+
+func (s *boilerplate) WithJwks(jwksUrls []string) *boilerplate {
+	s.config.JwkUrls = jwksUrls
+	return s
+}

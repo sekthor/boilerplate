@@ -62,6 +62,7 @@ type BoilerplateConfig struct {
 	Grpc        ServerConfig
 	Gateway     ServerConfig
 	Otel        OtelConfig
+	JwkUrls     []string
 }
 
 type ServerConfig struct {
@@ -163,4 +164,3 @@ func (c OtelConfig) MetricsInterval() time.Duration {
 	}
 	return DEFAULT_OTEL_INTERVAL * time.Second
 }
-

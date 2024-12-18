@@ -105,6 +105,14 @@ func (s *boilerplate) runGrpc() error {
 		opts = append(opts, grpc.Creds(creds))
 	}
 
+	if len(s.config.JwkUrls) > 0 {
+		interceptor, err := UnaryJwtInterceptor(s.config.JwkUrls)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, grpc.UnaryInterceptor(interceptor))
+	}
+
 	server := grpc.NewServer(opts...)
 	err := s.grpcRegisterFunc(server)
 	if err != nil {

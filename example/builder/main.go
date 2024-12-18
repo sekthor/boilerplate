@@ -21,6 +21,12 @@ func (i *ServiceImplementation) SayHello(ctx context.Context, req *greeterv1.Say
 	_, span := t.Start(ctx, "SayHello")
 	defer span.End()
 	name := req.GetName()
+
+	token, ok := ctx.Value("claims").(boilerplate.Claims)
+	if ok {
+		name = name + " (" + token.Subject + ")"
+	}
+
 	return &greeterv1.SayHelloResponse{
 		Message: fmt.Sprintf("Hello %s!", name),
 	}, nil
@@ -44,7 +50,8 @@ func main() {
 		WithGatewayPort(50002).
 		WithTracer("github.com/sekthor/boilerplate/example/builder").
 		WithGrpcRegisterFunc(grpcFunc).
-		WithGatewayRegisterFunc(gatewayFunc)
+		WithGatewayRegisterFunc(gatewayFunc).
+		WithJwks([]string{"http://keycloak.kubernetes/realms/blofeld/protocol/openid-connect/certs"})
 
 	if err := i.server.Run(ctx); err != nil {
 		log.Fatalf("could not start server: %v", err)
