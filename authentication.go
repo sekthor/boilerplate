@@ -35,8 +35,8 @@ func UnaryJwtInterceptor(jwksUrls []string) (grpc.UnaryServerInterceptor, error)
 
 		signed := strings.TrimPrefix(header[0], "Bearer ")
 		claims := Claims{}
-		_, err := jwt.ParseWithClaims(signed, &claims, Keyfunc.Keyfunc)
-		if err != nil {
+		token, err := jwt.ParseWithClaims(signed, &claims, Keyfunc.Keyfunc)
+		if err != nil || !token.Valid {
 			return nil, errInvalidToken
 		}
 
