@@ -140,3 +140,11 @@ func (c OtelConfig) MetricsInterval() time.Duration {
 	}
 	return DEFAULT_OTEL_INTERVAL * time.Second
 }
+
+func (c OtelConfig) TracingInsecure() bool {
+	return c.Insecure || c.Tracing.Insecure
+}
+
+func (c OtelConfig) MetricsInsecure() bool {
+	return c.Insecure || c.Metrics.Insecure
+}

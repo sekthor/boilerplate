@@ -109,7 +109,7 @@ func newTraceExporter(ctx context.Context, conf OtelConfig) (sdktrace.SpanExport
 
 		options = append(options, otlptracehttp.WithEndpoint(conf.TracingAddr()))
 
-		if conf.Insecure {
+		if conf.TracingInsecure() {
 			options = append(options, otlptracehttp.WithInsecure())
 		}
 
@@ -118,7 +118,7 @@ func newTraceExporter(ctx context.Context, conf OtelConfig) (sdktrace.SpanExport
 	case "grpc":
 		var options []otlptracegrpc.Option
 		options = append(options, otlptracegrpc.WithEndpoint(conf.TracingAddr()))
-		if conf.Insecure {
+		if conf.TracingInsecure() {
 			options = append(options, otlptracegrpc.WithInsecure())
 		}
 		exporter, err = otlptracegrpc.New(ctx, options...)
@@ -161,7 +161,7 @@ func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter
 
 		options = append(options, otlpmetrichttp.WithEndpoint(conf.MetricsAddr()))
 
-		if conf.Insecure {
+		if conf.MetricsInsecure() {
 			options = append(options, otlpmetrichttp.WithInsecure())
 		}
 
@@ -170,7 +170,7 @@ func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter
 	case "grpc":
 		var options []otlpmetricgrpc.Option
 		options = append(options, otlpmetricgrpc.WithEndpoint(conf.MetricsAddr()))
-		if conf.Insecure {
+		if conf.MetricsInsecure() {
 			options = append(options, otlpmetricgrpc.WithInsecure())
 		}
 		exporter, err = otlpmetricgrpc.New(ctx, options...)
