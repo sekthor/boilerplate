@@ -147,6 +147,7 @@ func newTraceExporter(ctx context.Context, conf OtelConfig) (sdktrace.SpanExport
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
 
+	logrus.WithContext(ctx).Debugf("otlp tracing exporter: %s, %s", conf.TracingProtocol(), conf.TracingAddr())
 	return exporter, err
 }
 
@@ -196,6 +197,7 @@ func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter
 		exporter, err = stdoutmetric.New()
 	}
 
+	logrus.WithContext(ctx).Debugf("otlp metrics exporter: %s, %s", conf.MetricsProtocol(), conf.MetricsAddr())
 	return exporter, err
 }
 
@@ -222,7 +224,7 @@ func newLoggingExporter(ctx context.Context, conf OtelConfig) (sdklog.Exporter, 
 	var exporter sdklog.Exporter
 	var err error
 
-	switch conf.LogggingProtocol() {
+	switch conf.LoggingProtocol() {
 
 	case "http", "https":
 		var options []otlploghttp.Option
@@ -244,5 +246,6 @@ func newLoggingExporter(ctx context.Context, conf OtelConfig) (sdklog.Exporter, 
 		exporter, err = stdoutlog.New()
 	}
 
+	logrus.WithContext(ctx).Debugf("otlp logger exporter: %s, %s", conf.LoggingProtocol(), conf.LoggingAddr())
 	return exporter, err
 }

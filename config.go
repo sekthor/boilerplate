@@ -130,7 +130,7 @@ func (c OtelConfig) MetricsProtocol() string {
 	return c.Protocol
 }
 
-func (c OtelConfig) LogggingProtocol() string {
+func (c OtelConfig) LoggingProtocol() string {
 	if c.Logging.Protocol != "" {
 		return c.Logging.Protocol
 	}

@@ -181,6 +181,7 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		Addr:    s.config.Gateway.Addr,
 		Handler: mux,
 	}
+	logrus.Infof("starting gateway server, listening on '%s'", s.config.Gateway.Addr)
 	return server.ListenAndServe()
 }
 
