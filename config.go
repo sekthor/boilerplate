@@ -13,7 +13,6 @@ const (
 
 var defaultConfig = BoilerplateConfig{
 	ServiceName: "UnnamedBoilerplateService",
-	TracerName:  "github.com/sekthor/boilerplate",
 	Grpc: ServerConfig{
 		Addr: DEFAULT_GRPC_ADDR,
 		TLS: TlsConfig{
@@ -34,23 +33,22 @@ var defaultConfig = BoilerplateConfig{
 		},
 	},
 	Otel: OtelConfig{
+		TracerName: "github.com/sekthor/boilerplate",
+		LoggerName: "github.com/sekthor/boilerplate",
 		OtelExporterConfig: OtelExporterConfig{
-			Enabled: true,
-			Addr:    DEFAULT_OTEL_ADDR,
-		},
-		Tracing: OtelExporterConfig{
 			Enabled:  true,
 			Addr:     DEFAULT_OTEL_ADDR,
 			Protocol: "grpc",
 			Interval: 5,
-			Insecure: true,
+		},
+		Logging: OtelExporterConfig{
+			Enabled: true,
 		},
 	},
 }
 
 type BoilerplateConfig struct {
 	ServiceName string
-	TracerName  string
 	Grpc        ServerConfig
 	Gateway     ServerConfig
 	Otel        OtelConfig
@@ -65,8 +63,11 @@ type ServerConfig struct {
 
 type OtelConfig struct {
 	OtelExporterConfig
-	Tracing OtelExporterConfig
-	Metrics OtelExporterConfig
+	Tracing    OtelExporterConfig
+	Metrics    OtelExporterConfig
+	Logging    OtelExporterConfig
+	TracerName string
+	LoggerName string
 }
 
 type OtelExporterConfig struct {
@@ -105,6 +106,16 @@ func (c OtelConfig) MetricsAddr() string {
 	return DEFAULT_OTEL_ADDR
 }
 
+func (c OtelConfig) LoggingAddr() string {
+	if c.Logging.Addr != "" {
+		return c.Logging.Addr
+	}
+	if c.Addr != "" {
+		return c.Addr
+	}
+	return DEFAULT_OTEL_ADDR
+}
+
 func (c OtelConfig) TracingProtocol() string {
 	if c.Tracing.Protocol != "" {
 		return c.Tracing.Protocol
@@ -115,6 +126,13 @@ func (c OtelConfig) TracingProtocol() string {
 func (c OtelConfig) MetricsProtocol() string {
 	if c.Metrics.Protocol != "" {
 		return c.Metrics.Protocol
+	}
+	return c.Protocol
+}
+
+func (c OtelConfig) LogggingProtocol() string {
+	if c.Logging.Protocol != "" {
+		return c.Logging.Protocol
 	}
 	return c.Protocol
 }
@@ -141,10 +159,25 @@ func (c OtelConfig) MetricsInterval() time.Duration {
 	return DEFAULT_OTEL_INTERVAL * time.Second
 }
 
+func (c OtelConfig) LoggingInterval() time.Duration {
+	if c.Logging.Interval != 0 {
+		return time.Second * time.Duration(c.Logging.Interval)
+	}
+
+	if c.Interval != 0 {
+		return time.Second * time.Duration(c.Interval)
+	}
+	return DEFAULT_OTEL_INTERVAL * time.Second
+}
+
 func (c OtelConfig) TracingInsecure() bool {
 	return c.Insecure || c.Tracing.Insecure
 }
 
 func (c OtelConfig) MetricsInsecure() bool {
 	return c.Insecure || c.Metrics.Insecure
+}
+
+func (c OtelConfig) LoggingInsecure() bool {
+	return c.Insecure || c.Logging.Insecure
 }

@@ -5,14 +5,21 @@ import (
 	"errors"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/bridges/otellogrus"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -62,6 +69,19 @@ func setupOtel(ctx context.Context, conf OtelConfig, serviceName string) (shutdo
 		}
 		shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 		otel.SetTracerProvider(tracerProvider)
+	}
+
+	if conf.Logging.Enabled {
+		var loggerProvider *sdklog.LoggerProvider
+		loggerProvider, err = newLoggerProvider(ctx, conf, serviceName)
+		if err != nil {
+			handleErr(err)
+			return
+		}
+		shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
+		global.SetLoggerProvider(loggerProvider)
+		hook := otellogrus.NewHook(conf.LoggerName, otellogrus.WithLoggerProvider(loggerProvider))
+		logrus.AddHook(hook)
 	}
 
 	return
@@ -158,13 +178,10 @@ func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter
 
 	case "http", "https":
 		var options []otlpmetrichttp.Option
-
 		options = append(options, otlpmetrichttp.WithEndpoint(conf.MetricsAddr()))
-
 		if conf.MetricsInsecure() {
 			options = append(options, otlpmetrichttp.WithInsecure())
 		}
-
 		exporter, err = otlpmetrichttp.New(ctx, options...)
 
 	case "grpc":
@@ -177,6 +194,54 @@ func newMetricExporter(ctx context.Context, conf OtelConfig) (sdkmetric.Exporter
 
 	default:
 		exporter, err = stdoutmetric.New()
+	}
+
+	return exporter, err
+}
+
+func newLoggerProvider(ctx context.Context, conf OtelConfig, serviceName string) (*sdklog.LoggerProvider, error) {
+	exporter, err := newLoggingExporter(ctx, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	resource, err := defaultResource(serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	processor := sdklog.NewBatchProcessor(exporter, sdklog.WithExportInterval(conf.LoggingInterval()))
+	loggingProvider := sdklog.NewLoggerProvider(
+		sdklog.WithResource(resource),
+		sdklog.WithProcessor(processor),
+	)
+	return loggingProvider, nil
+}
+
+func newLoggingExporter(ctx context.Context, conf OtelConfig) (sdklog.Exporter, error) {
+	var exporter sdklog.Exporter
+	var err error
+
+	switch conf.LogggingProtocol() {
+
+	case "http", "https":
+		var options []otlploghttp.Option
+		options = append(options, otlploghttp.WithEndpoint(conf.LoggingAddr()))
+		if conf.LoggingInsecure() {
+			options = append(options, otlploghttp.WithInsecure())
+		}
+		exporter, err = otlploghttp.New(ctx, options...)
+
+	case "grpc":
+		var options []otlploggrpc.Option
+		options = append(options, otlploggrpc.WithEndpoint(conf.LoggingAddr()))
+		if conf.LoggingInsecure() {
+			options = append(options, otlploggrpc.WithInsecure())
+		}
+		exporter, err = otlploggrpc.New(ctx, options...)
+
+	default:
+		exporter, err = stdoutlog.New()
 	}
 
 	return exporter, err
