@@ -59,7 +59,7 @@ func main() {
 		WithLogger("github.com/sekthor/boilerplate/example/builder").
 		WithGrpcRegisterFunc(grpcFunc).
 		WithGatewayRegisterFunc(gatewayFunc).
-		WithJwks([]string{"http://localhost:8080/realms/blofeld/protocol/openid-connect/certs"})
+		WithJwks([]string{"http://keycloak.kubernetes/realms/blofeld/protocol/openid-connect/certs"})
 
 	if err := i.server.Run(ctx); err != nil {
 		log.Fatalf("could not start server: %v", err)

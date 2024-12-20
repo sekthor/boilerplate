@@ -11,6 +11,8 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
@@ -106,6 +108,10 @@ func (s *boilerplate) runGrpc() error {
 		opts = append(opts, grpc.Creds(creds))
 	}
 
+	if s.config.Otel.Tracing.Enabled {
+		opts = append(opts, grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	}
+
 	if len(s.config.JwkUrls) > 0 {
 		interceptor, err := UnaryJwtInterceptor(s.config.JwkUrls)
 		if err != nil {
@@ -161,6 +167,10 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(creds))
 	}
 
+	if s.config.Otel.Tracing.Enabled {
+		dialOptions = append(dialOptions, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	}
+
 	conn, err := grpc.NewClient(
 		s.config.Grpc.Addr,
 		dialOptions...,
@@ -177,9 +187,14 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		return err
 	}
 
+	var handler http.Handler = mux
+	if s.config.Otel.Tracing.Enabled {
+		handler = otelhttp.NewHandler(mux, "Gateway")
+	}
+
 	server := &http.Server{
 		Addr:    s.config.Gateway.Addr,
-		Handler: mux,
+		Handler: handler,
 	}
 	logrus.Infof("starting gateway server, listening on '%s'", s.config.Gateway.Addr)
 	return server.ListenAndServe()
