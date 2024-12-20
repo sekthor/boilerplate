@@ -24,8 +24,14 @@ func (s *boilerplate) WithGatewayAddr(addr string) *boilerplate {
 func (s *boilerplate) WithTracer(name string) *boilerplate {
 	s.config.Otel.Enabled = true
 	s.config.Otel.Tracing.Enabled = true
-	s.config.TracerName = name
-	s.config.Otel.Tracing.Interval = 5
+	s.config.Otel.TracerName = name
+	return s
+}
+
+func (s *boilerplate) WithLogger(name string) *boilerplate {
+	s.config.Otel.Enabled = true
+	s.config.Otel.Logging.Enabled = true
+	s.config.Otel.LoggerName = name
 	return s
 }
 
@@ -41,5 +47,15 @@ func (s *boilerplate) WithGatewayRegisterFunc(f GatewayRegisterFunc) *boilerplat
 
 func (s *boilerplate) WithJwks(jwksUrls []string) *boilerplate {
 	s.config.JwkUrls = jwksUrls
+	return s
+}
+
+func (s *boilerplate) WithOtlpProtocol(protocol string) *boilerplate {
+	s.config.Otel.Protocol = protocol
+	return s
+}
+
+func (s *boilerplate) WithOtlpInsecure() *boilerplate {
+	s.config.Otel.Insecure = true
 	return s
 }

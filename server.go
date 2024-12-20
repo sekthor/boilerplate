@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
@@ -47,7 +48,7 @@ func (s *boilerplate) Run(ctx context.Context) error {
 	}
 
 	tp := otel.GetTracerProvider()
-	s.tracer = tp.Tracer(s.config.TracerName)
+	s.tracer = tp.Tracer(s.config.Otel.TracerName)
 
 	errChan := make(chan error)
 
@@ -124,6 +125,7 @@ func (s *boilerplate) runGrpc() error {
 		return err
 	}
 
+	logrus.Infof("starting grpc server, listening on '%s'", s.config.Grpc.Addr)
 	return server.Serve(lis)
 }
 
