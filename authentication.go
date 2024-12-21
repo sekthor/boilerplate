@@ -6,6 +6,8 @@ import (
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -40,6 +42,8 @@ func UnaryJwtInterceptor(jwksUrls []string) (grpc.UnaryServerInterceptor, error)
 			return nil, errInvalidToken
 		}
 
+		span := trace.SpanFromContext(ctx)
+		span.SetAttributes(attribute.String("user.id", claims.Subject))
 		ctx = context.WithValue(ctx, "claims", claims)
 
 		return handler(ctx, req)
