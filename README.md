@@ -8,6 +8,24 @@ This project holds a Boilerplate server for
 - with grpc-gateway
 - opentelemetry
 
+## Feature Status
+
+- gPRC Server
+    - ✅ insecure
+    - ⭕ TLS (currently hard coded server name)
+    - ⭕ mTLS (currently only supports 1 CA)
+- gRPC Gateway
+    - ✅ insecure
+- JWT Authentication
+    - ✅ multiple issuers (supply *n* jwks endpoints used to check jwt signatures)
+    - ✅ access token claims from request context
+    - ❌ API for accessing claims (e.g. `ClaimsFromContext(context.Context) (Claims, error)`)
+- Opentelemetry
+    - ✅ Tracing Exporter
+    - ✅ Metrics Exporter
+    - ✅ Logger Exporter (with logrus bridge)
+    - ❌ customizable default resources/attributes
+
 ## Usage
 
 ```
