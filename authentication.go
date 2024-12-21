@@ -2,6 +2,7 @@ package boilerplate
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/MicahParks/keyfunc/v3"
@@ -49,4 +50,18 @@ func UnaryJwtInterceptor(jwksUrls []string) (grpc.UnaryServerInterceptor, error)
 
 		return handler(ctx, req)
 	}, nil
+}
+
+func GetClaimsFromContext(ctx context.Context) (claims Claims, err error) {
+	var ok bool
+	claims, ok = ctx.Value("claims").(Claims)
+	if !ok {
+		err = errors.New("no user in context")
+	}
+	return
+}
+
+func GetSubjectFromContext(ctx context.Context) (string, error) {
+	claims, err := GetClaimsFromContext(ctx)
+	return claims.Subject, err
 }
