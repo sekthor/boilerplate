@@ -32,7 +32,8 @@ func UnaryJwtInterceptor(jwksUrls []string) (grpc.UnaryServerInterceptor, error)
 		header := md["authorization"]
 
 		if len(header) < 1 {
-			return nil, errMissingBearerToken
+			return handler(ctx, req)
+			//return nil, errMissingBearerToken
 		}
 
 		signed := strings.TrimPrefix(header[0], "Bearer ")
