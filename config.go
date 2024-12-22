@@ -44,6 +44,9 @@ var defaultConfig = BoilerplateConfig{
 		Logging: OtelExporterConfig{
 			Enabled: true,
 		},
+		Metrics: OtelExporterConfig{
+			Enabled: true,
+		},
 	},
 }
 
