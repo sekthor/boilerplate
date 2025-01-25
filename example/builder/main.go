@@ -59,6 +59,7 @@ func main() {
 	authInterceptor, err := boilerplate.UnaryJwtClaimsInterceptor(
 		[]string{"http://localhost:3001/realms/gig/protocol/openid-connect/certs"},
 		customClaims,
+		false,
 	)
 
 	if err != nil {

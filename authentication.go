@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func UnaryJwtClaimsInterceptor[T jwt.Claims](jwksUrls []string, claimsFunc func() T) (grpc.UnaryServerInterceptor, error) {
+func UnaryJwtClaimsInterceptor[T jwt.Claims](jwksUrls []string, claimsFunc func() T, requireAuthn bool) (grpc.UnaryServerInterceptor, error) {
 
 	Keyfunc, err := keyfunc.NewDefault(jwksUrls)
 	if err != nil {
@@ -29,8 +29,10 @@ func UnaryJwtClaimsInterceptor[T jwt.Claims](jwksUrls []string, claimsFunc func(
 		header := md["authorization"]
 
 		if len(header) < 1 {
+			if requireAuthn {
+				return nil, errMissingBearerToken
+			}
 			return handler(ctx, req)
-			//return nil, errMissingBearerToken
 		}
 
 		claims := claimsFunc()
