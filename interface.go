@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 )
 
 type BoilerplateServer interface {
@@ -14,7 +15,7 @@ type BoilerplateServer interface {
 	WithGrpcRegisterFunc(GrpcRegisterFunc) *boilerplate
 	WithGatewayRegisterFunc(GatewayRegisterFunc) *boilerplate
 	WithTracer(string) *boilerplate
-	WithJwks(jwksUrls []string) *boilerplate
+	AddInterceptor(grpc.UnaryServerInterceptor) *boilerplate
 	RegisterGateway(GatewayRegisterFunc)
 	RegisterGrpc(GrpcRegisterFunc)
 	Run(context.Context) error

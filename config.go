@@ -55,7 +55,6 @@ type BoilerplateConfig struct {
 	Grpc        ServerConfig
 	Gateway     ServerConfig
 	Otel        OtelConfig
-	JwkUrls     []string
 }
 
 type ServerConfig struct {

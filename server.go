@@ -26,6 +26,7 @@ type boilerplate struct {
 	tracer              trace.Tracer
 	grpcRegisterFunc    GrpcRegisterFunc
 	gatewayRegisterFunc GatewayRegisterFunc
+	interceptors        []grpc.UnaryServerInterceptor
 }
 
 func New() BoilerplateServer {
@@ -111,11 +112,7 @@ func (s *boilerplate) runGrpc() error {
 		opts = append(opts, grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	}
 
-	if len(s.config.JwkUrls) > 0 {
-		interceptor, err := UnaryJwtInterceptor(s.config.JwkUrls)
-		if err != nil {
-			return err
-		}
+	for _, interceptor := range s.interceptors {
 		opts = append(opts, grpc.UnaryInterceptor(interceptor))
 	}
 
