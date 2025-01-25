@@ -1,5 +1,9 @@
 package boilerplate
 
+import (
+	"google.golang.org/grpc"
+)
+
 func (s *boilerplate) WithConfig(conf BoilerplateConfig) *boilerplate {
 	s.config = conf
 	return s
@@ -45,11 +49,6 @@ func (s *boilerplate) WithGatewayRegisterFunc(f GatewayRegisterFunc) *boilerplat
 	return s
 }
 
-func (s *boilerplate) WithJwks(jwksUrls []string) *boilerplate {
-	s.config.JwkUrls = jwksUrls
-	return s
-}
-
 func (s *boilerplate) WithOtlpProtocol(protocol string) *boilerplate {
 	s.config.Otel.Protocol = protocol
 	return s
@@ -57,5 +56,10 @@ func (s *boilerplate) WithOtlpProtocol(protocol string) *boilerplate {
 
 func (s *boilerplate) WithOtlpInsecure() *boilerplate {
 	s.config.Otel.Insecure = true
+	return s
+}
+
+func (s *boilerplate) AddInterceptor(i grpc.UnaryServerInterceptor) *boilerplate {
+	s.interceptors = append(s.interceptors, i)
 	return s
 }
