@@ -73,3 +73,8 @@ func (s *boilerplate) WithAllowedMethod(methods []string) *boilerplate {
 	s.config.Gateway.AllowedMethods = methods
 	return s
 }
+
+func (s *boilerplate) WithAllowedHeaders(headers []string) *boilerplate {
+	s.config.Gateway.AllowedHeaders = headers
+	return s
+}
