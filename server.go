@@ -185,12 +185,7 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		return err
 	}
 
-	var handler http.Handler = mux
-	/*
-		if s.config.Otel.Tracing.Enabled {
-			handler = otelhttp.NewHandler(mux, "Gateway")
-		}
-	*/
+	var handler http.Handler = corsHandler(s.config.Gateway.AllowedOrigins, s.config.Gateway.AllowedMethods)(mux)
 
 	server := &http.Server{
 		Addr:    s.config.Gateway.Addr,

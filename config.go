@@ -23,15 +23,19 @@ var defaultConfig = BoilerplateConfig{
 			Ca:      "certs/client_ca_cert.pem",
 		},
 	},
-	Gateway: ServerConfig{
-		Addr: DEFAULT_GATEWAY_ADDR,
-		TLS: TlsConfig{
-			Mutual: true,
-			Cert:   "certs/client_cert.pem",
-			Key:    "certs/client_key.pem",
-			Ca:     "certs/server_ca_cert.pem",
+	Gateway: GatewayConfig{
+		ServerConfig: ServerConfig{
+			Addr: DEFAULT_GATEWAY_ADDR,
+			TLS: TlsConfig{
+				Mutual: true,
+				Cert:   "certs/client_cert.pem",
+				Key:    "certs/client_key.pem",
+				Ca:     "certs/server_ca_cert.pem",
+			},
 		},
+		AllowedOrigins: []string{"*"},
 	},
+
 	Otel: OtelConfig{
 		TracerName: "github.com/sekthor/boilerplate",
 		LoggerName: "github.com/sekthor/boilerplate",
@@ -53,8 +57,14 @@ var defaultConfig = BoilerplateConfig{
 type BoilerplateConfig struct {
 	ServiceName string
 	Grpc        ServerConfig
-	Gateway     ServerConfig
+	Gateway     GatewayConfig
 	Otel        OtelConfig
+}
+
+type GatewayConfig struct {
+	ServerConfig
+	AllowedOrigins []string
+	AllowedMethods []string
 }
 
 type ServerConfig struct {
