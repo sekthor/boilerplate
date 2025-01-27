@@ -185,7 +185,10 @@ func (s *boilerplate) runGateway(ctx context.Context) error {
 		return err
 	}
 
-	var handler http.Handler = corsHandler(s.config.Gateway.AllowedOrigins, s.config.Gateway.AllowedMethods)(mux)
+	var handler http.Handler = corsHandler(
+		s.config.Gateway.AllowedOrigins,
+		s.config.Gateway.AllowedMethods,
+		s.config.Gateway.AllowedHeaders)(mux)
 
 	server := &http.Server{
 		Addr:    s.config.Gateway.Addr,

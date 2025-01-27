@@ -65,6 +65,7 @@ type GatewayConfig struct {
 	ServerConfig
 	AllowedOrigins []string
 	AllowedMethods []string
+	AllowedHeaders []string
 }
 
 type ServerConfig struct {
