@@ -63,3 +63,13 @@ func (s *boilerplate) AddInterceptor(i grpc.UnaryServerInterceptor) *boilerplate
 	s.interceptors = append(s.interceptors, i)
 	return s
 }
+
+func (s *boilerplate) WithAllowedOrigins(origins []string) *boilerplate {
+	s.config.Gateway.AllowedOrigins = origins
+	return s
+}
+
+func (s *boilerplate) WithAllowedMethod(methods []string) *boilerplate {
+	s.config.Gateway.AllowedMethods = methods
+	return s
+}
